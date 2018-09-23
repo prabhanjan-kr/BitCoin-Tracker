@@ -17,6 +17,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     let baseURL = "https://apiv2.bitcoinaverage.com/indices/global/ticker/BTC"
     let currencyArray = ["AUD", "BRL","CAD","CNY","EUR","GBP","HKD","IDR","ILS","INR","JPY","MXN","NOK","NZD","PLN","RON","RUB","SEK","SGD","USD","ZAR"]
     var finalURL = ""
+    var selectedCurrency = ""
     
     //Pre-setup IBOutlets
     @IBOutlet weak var bitcoinPriceLabel: UILabel!
@@ -28,6 +29,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         currencyPicker.dataSource = self
         if let defaultRow = currencyArray.index(of: "INR") {
             currencyPicker.selectRow(defaultRow, inComponent: 0, animated: false)
+            selectedCurrency = currencyArray[defaultRow]
             getPriceValue(for: currencyArray[defaultRow])
         }
         
@@ -51,6 +53,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     //On selecting a currency
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        selectedCurrency = currencyArray[row]
         getPriceValue(for: currencyArray[row])
     }
     
@@ -65,6 +68,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         Alamofire.request(finalURL, method : .get).responseJSON { (response) in
             if response.result.isSuccess{
                 let responseJson : JSON = JSON(response.result.value!)
+                print((responseJson))
                 self.updateBitCoinPrice(responseJson : responseJson)
             }
             else {
@@ -82,8 +86,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     /***************************************************************/
     
     func updateBitCoinPrice(responseJson : JSON) {
-        let latestPrice = responseJson["last"].stringValue
-        self.bitcoinPriceLabel.text = latestPrice
+        let latestPrice = String(format: "%.2f", responseJson["last"].floatValue)
+        self.bitcoinPriceLabel.text = selectedCurrency + " " + latestPrice
         SVProgressHUD.dismiss()
         
     }
